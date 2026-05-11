@@ -1,0 +1,65 @@
+version: '3.8'
+
+services:
+  # 1. Base de Datos
+  db-innovatech:
+    image: mysql:8.0
+    container_name: mysql-innovatech
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: innovatech_db
+      MYSQL_USER: user_innovatech
+      MYSQL_PASSWORD: pass_innovatech
+    volumes:
+      - db_data:/var/lib/mysql
+    networks:
+      - backend-net
+
+  # 2. Microservicio de Ventas
+  ventas-api:
+    build: 
+      context: ./back-Ventas_SpringBoot/Springboot-API-REST
+      dockerfile: Dockerfile
+    container_name: api-ventas
+    ports:
+      - "9090:8080"
+    environment:
+      - DB_ENDPOINT=db-innovatech
+      - DB_PORT=3306
+      - DB_NAME=innovatech_db
+      - DB_USERNAME=user_innovatech
+      - DB_PASSWORD=pass_innovatech
+      - SPRING_DATASOURCE_URL=jdbc:mysql://db-innovatech:3306/innovatech_db?useSSL=false&serverTimezone=UTC&createDatabaseIfNotExist=true&allowPublicKeyRetrieval=true
+    depends_on:
+      - db-innovatech
+    networks:
+      - backend-net
+
+  # 3. Microservicio de Despachos
+  despachos-api:
+    build: 
+      context: ./back-Despachos_SpringBoot/Springboot-API-REST-DESPACHO
+      dockerfile: Dockerfile
+    container_name: api-despachos
+    ports:
+      - "8081:8081"
+    environment:
+      - DB_ENDPOINT=db-innovatech
+      - DB_PORT=3306
+      - DB_NAME=innovatech_db
+      - DB_USERNAME=user_innovatech
+      - DB_PASSWORD=pass_innovatech
+      - SPRING_DATASOURCE_URL=jdbc:mysql://db-innovatech:3306/innovatech_db?useSSL=false&serverTimezone=UTC&createDatabaseIfNotExist=true&allowPublicKeyRetrieval=true
+    depends_on:
+      - db-innovatech
+    networks:
+      - backend-net
+
+volumes:
+  db_data:
+
+networks:
+  backend-net:
+    driver: bridge
